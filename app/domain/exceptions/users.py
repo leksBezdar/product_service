@@ -43,9 +43,27 @@ class EmptyPhone(ApplicationException):
 
 
 @dataclass(eq=False)
-class InvalidPhone(ApplicationException):
-    email: str
+class InvalidPhoneFormat(ApplicationException):
+    phone: str
 
     @property
     def message(self) -> str:
-        return f"The provided phone is invalid: {self.email}"
+        return f"The provided phone is invalid: {self.phone}"
+
+
+@dataclass(eq=False)
+class InvalidPhoneLength(ApplicationException):
+    length: str
+
+    @property
+    def message(self) -> str:
+        return f"Phone length is invalid: {self.length}"
+
+
+@dataclass(eq=False)
+class InvalidUsernameCharacters(ApplicationException):
+    value: str
+
+    @property
+    def message(self) -> str:
+        return f"The provided username has invalid characters: {self.value}"
