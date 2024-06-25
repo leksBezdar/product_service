@@ -5,6 +5,7 @@ ENV = --env-file .env
 APP_FILE = docker_compose/app.yaml
 APP_CONTAINER = product-main-app
 STORAGES_FILE = docker_compose/storages.yaml
+DB_CONTAINER = main-postgres
 
 .PHONY: app
 app:
@@ -13,6 +14,10 @@ app:
 .PHONY: storages
 storages:
 	${DC} -f ${STORAGES_FILE} ${ENV} up --build -d
+
+.PHONY: postgres
+postgres:
+	${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
 
 .PHONY: all
 all:

@@ -1,24 +1,23 @@
-from sqlalchemy import NullPool
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import MetaData
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from settings.settings import Settings
+from infrastructure.repositories.common.db_convention import DB_NAMING_CONVENTION
+from settings.settings import settings
 
 
-engine = create_async_engine(Settings.DB_URL, future=True, echo=True)
-test_engine = create_async_engine(
-    Settings.TEST_DB_URL, future=True, echo=True, poolclass=NullPool
+metadata = MetaData(naming_convention=DB_NAMING_CONVENTION)
+
+
+async_engine = create_async_engine(settings.DB_URL)
+test_async_engine = create_async_engine(settings.TEST_DB_URL)
+
+
+async_session = async_sessionmaker(
+    async_engine,
+    expire_on_commit=False,
 )
 
-
-async_session = sessionmaker(
-    engine,
+test_session = async_sessionmaker(
+    test_async_engine,
     expire_on_commit=False,
-    class_=AsyncSession,
-)
-
-test_session = sessionmaker(
-    test_engine,
-    expire_on_commit=False,
-    class_=AsyncSession,
 )

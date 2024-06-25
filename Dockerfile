@@ -8,11 +8,11 @@ RUN python -m pip install poetry==1.8.2 && \
 
 FROM python:3.12.1-slim-bullseye as dev
 
-WORKDIR /core
+WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-COPY --from=builder requirements.dev.txt /core
+COPY --from=builder requirements.dev.txt /app
 
 RUN apt update -y && \
     apt install -y python3-dev \
@@ -20,6 +20,6 @@ RUN apt update -y && \
     musl-dev && \
     pip install --upgrade pip && pip install --no-cache-dir -r requirements.dev.txt
 
-COPY . /core/
+COPY /app/ /app/**
 
 EXPOSE 8000

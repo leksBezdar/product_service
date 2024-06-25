@@ -5,21 +5,14 @@ services:
     image: postgres:latest
     container_name: main-postgres
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - backend
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
     env_file:
       - ../.env
-    command: -p ${DB_PORT}
 volumes:
   postgres_data:
-
-networks:
-  backend:
-    driver: bridge

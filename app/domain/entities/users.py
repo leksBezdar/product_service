@@ -9,7 +9,7 @@ from domain.events.users import (
 
 
 @dataclass(eq=False)
-class User(BaseEntity):
+class UserEntity(BaseEntity):
     phone: Phone
     username: Username
     password: Password
@@ -18,7 +18,7 @@ class User(BaseEntity):
     @classmethod
     async def create(
         cls, username: Username, password: Password, phone: Phone
-    ) -> "User":
+    ) -> "UserEntity":
         new_user = cls(phone=phone, username=username, password=password)
         new_user.register_event(
             UserCreatedEvent(

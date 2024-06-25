@@ -1,0 +1,26 @@
+from abc import ABC, abstractmethod
+from typing import Iterable
+
+from domain.entities.users import UserEntity
+from infrastructure.repositories.users.filters.users import GetUsersFilters
+
+
+class IUserRepository(ABC):
+    @abstractmethod
+    async def add(self, user: UserEntity) -> None: ...
+
+    @abstractmethod
+    async def get_by_oid(self, oid: str) -> UserEntity | None: ...
+
+    @abstractmethod
+    async def get_all(
+        self, filters: GetUsersFilters
+    ) -> tuple[Iterable[UserEntity], int]: ...
+
+    @abstractmethod
+    async def delete(self, oid: str) -> UserEntity | None: ...
+
+    @abstractmethod
+    async def check_user_exists_by_phone_and_username(
+        self, phone: str, username: str
+    ) -> bool: ...
