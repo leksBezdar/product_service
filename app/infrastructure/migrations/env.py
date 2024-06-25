@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 
-from infrastructure.models.users import User  # noqa
+from infrastructure.models.users import UserModel  # noqa
 from infrastructure.models.common.base import Base
 from settings.settings import settings
 

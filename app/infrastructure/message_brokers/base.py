@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class BaseMessageBroker(ABC):
+class IMessageBroker(ABC):
     @abstractmethod
     async def start(self) -> None: ...
 

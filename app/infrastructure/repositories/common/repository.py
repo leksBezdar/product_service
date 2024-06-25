@@ -7,7 +7,7 @@ from infrastructure.repositories.common.database import async_session, test_sess
 from settings.settings import Settings
 
 
-class IPostgresRepository(ABC):
+class ISqlAlchemyRepository(ABC):
     _model: type[Base] = NotImplemented
     _session_factory: Callable = async_session
 

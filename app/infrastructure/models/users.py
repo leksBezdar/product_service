@@ -7,7 +7,7 @@ from sqlalchemy.sql import func
 from infrastructure.models.common.base import Base, BaseIDMixin
 
 
-class User(Base, BaseIDMixin):
+class UserModel(Base, BaseIDMixin):
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
     phone: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[str] = mapped_column(nullable=False, unique=True)

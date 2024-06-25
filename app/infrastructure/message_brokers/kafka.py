@@ -3,12 +3,12 @@ from typing import AsyncIterator
 
 import orjson
 
-from infrastructure.message_brokers.base import BaseMessageBroker
+from infrastructure.message_brokers.base import IMessageBroker
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
 
 @dataclass
-class KafkaMessageBroker(BaseMessageBroker):
+class KafkaMessageBroker(IMessageBroker):
     producer: AIOKafkaProducer
     consumer: AIOKafkaConsumer
 
