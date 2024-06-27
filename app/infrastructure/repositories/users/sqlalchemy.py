@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Iterable
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 
 from domain.entities.users import UserEntity
 from infrastructure.exception_mapper import exception_mapper
@@ -83,6 +83,8 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlAlchemyRepository):
     ) -> bool:
         async with self.get_session() as session:
             result = await session.execute(
-                select(self._model).filter_by(phone=phone, username=username)
+                select(self._model).filter(
+                    or_(self._model.phone == phone, self._model.username == username)
+                )
             )
             return result.scalars().first() is not None

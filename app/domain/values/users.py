@@ -39,18 +39,25 @@ class Username(BaseValueObject):
 class Phone(BaseValueObject):
     value: str
 
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.format_to_digits_only()
+
+    def format_to_digits_only(self) -> None:
+        digits_only = re.sub(r"\D", "", self.value)
+        self.value = f"+{digits_only}"
+
     def validate(self):
         if not self.value:
             raise EmptyPhone()
 
         phone_pattern = re.compile(r"^\+?[\d\s\-\(\)]+$")
         if not phone_pattern.match(self.value):
-            raise Exception(self.value)
             raise InvalidPhoneFormat(self.value)
 
-        digits_only = re.sub(r"\D", "", self.value)
-        if len(digits_only) < 10 or len(digits_only) > 15:
-            raise InvalidPhoneLength(len(self.value))
+        phone_length = len(self.value)
+        if phone_length not in range(8, 65):
+            raise InvalidPhoneLength(phone_length)
 
     def as_generic_type(self):
         return str(self.value)
