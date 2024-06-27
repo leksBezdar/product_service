@@ -1,6 +1,8 @@
 from dataclasses import field, dataclass
+from datetime import UTC, datetime
 
 from domain.entities.base import BaseEntity
+from domain.exceptions.users import UserAlreadyDeleted
 from domain.values.users import Username, Phone, Password
 from domain.events.users import (
     UserCreatedEvent,
@@ -14,6 +16,7 @@ class UserEntity(BaseEntity):
     username: Username
     password: Password
     is_verified: bool = field(default=False, kw_only=True)
+    deleted_at: datetime = field(default=None, kw_only=True)
 
     @classmethod
     async def create(
@@ -30,6 +33,9 @@ class UserEntity(BaseEntity):
         return new_user
 
     def delete(self) -> None:
+        self._validate_not_deleted()
+        self.deleted_at = datetime.now(UTC)
+
         self.register_event(
             UserDeletedEvent(
                 user_oid=self.oid,
@@ -37,3 +43,7 @@ class UserEntity(BaseEntity):
                 phone=self.phone.as_generic_type(),
             )
         )
+
+    def _validate_not_deleted(self) -> None:
+        if self.deleted_at is not None:
+            raise UserAlreadyDeleted(self.oid)

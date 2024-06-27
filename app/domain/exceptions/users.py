@@ -67,3 +67,12 @@ class InvalidUsernameCharacters(ApplicationException):
     @property
     def message(self) -> str:
         return f"The provided username has invalid characters: {self.value}"
+
+
+@dataclass(eq=False)
+class UserAlreadyDeleted(ApplicationException):
+    value: str
+
+    @property
+    def message(self) -> str:
+        return f"User with id {self.value} has already been deleted"

@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Any, ClassVar
 
-from sqlalchemy import TIMESTAMP
+from sqlalchemy import TIMESTAMP, Null
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -8,6 +9,8 @@ from infrastructure.models.common.base import Base, BaseIDMixin
 
 
 class UserModel(Base, BaseIDMixin):
+    __mapper_args__: ClassVar[dict[Any, Any]] = {"eager_defaults": True}
+
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
     phone: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[str] = mapped_column(nullable=False, unique=True)
@@ -16,6 +19,9 @@ class UserModel(Base, BaseIDMixin):
     )
 
     is_verified: Mapped[bool] = mapped_column()
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        default=None, server_default=Null()
+    )
 
     def __str__(self):
         return self.username
