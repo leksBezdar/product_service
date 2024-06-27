@@ -6,7 +6,7 @@ from sqlalchemy import func, or_, select
 from domain.entities.users import UserEntity
 from infrastructure.exception_mapper import exception_mapper
 from infrastructure.models.users import UserModel
-from infrastructure.repositories.common.repository import ISqlAlchemyRepository
+from infrastructure.repositories.common.repository import ISqlalchemyRepository
 from infrastructure.repositories.users.base import (
     IUserRepository,
 )
@@ -18,7 +18,7 @@ from infrastructure.repositories.users.filters.users import GetUsersFilters
 
 
 @dataclass(frozen=True)
-class SqlAlchemyUserRepository(IUserRepository, ISqlAlchemyRepository):
+class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
     _model: type[UserModel] = UserModel
 
     @exception_mapper

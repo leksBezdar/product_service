@@ -16,7 +16,7 @@ class UserEntity(BaseEntity):
     username: Username
     password: Password
     is_verified: bool = field(default=False, kw_only=True)
-    deleted_at: datetime = field(default=None, kw_only=True)
+    deleted_at: datetime | None = field(default=None, kw_only=True)
 
     @classmethod
     async def create(
