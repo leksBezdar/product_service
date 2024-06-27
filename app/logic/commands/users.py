@@ -51,7 +51,7 @@ class DeleteUserCommandHandler(CommandHandler[DeleteUserCommand, None]):
     user_repository: IUserRepository
 
     async def handle(self, command: DeleteUserCommand) -> None:
-        user = await self.user_repository.delete(user_oid=command.user_oid)
+        user = await self.user_repository.delete(oid=command.user_oid)
 
         if not user:
             raise UserNotFoundException(value=command.user_oid)
