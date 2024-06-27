@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     TEST_DB_HOST: str
     TEST_DB_PORT: int
 
+    KAFKA_URL: str = Field(default="kafka:29092")
+
     @property
     def DB_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

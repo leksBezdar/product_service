@@ -13,7 +13,11 @@ class Base(DeclarativeBase):
     @declared_attr
     def __tablename__(cls):
         class_name = cls.__name__
-        words = [word.lower() for word in re.findall("[A-Z][a-z0-9]*", class_name)]
+        words = [
+            word.lower()
+            for word in re.findall("[A-Z][a-z0-9]*", class_name)
+            if word.lower() != "model"
+        ]
         table_name = "_".join(words) + "s"
         return table_name
 

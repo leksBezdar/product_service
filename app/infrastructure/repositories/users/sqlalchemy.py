@@ -3,12 +3,16 @@ from typing import Iterable
 
 from sqlalchemy import func, select
 
+from domain.entities.users import UserEntity
 from infrastructure.models.users import UserModel
 from infrastructure.repositories.common.repository import ISqlAlchemyRepository
 from infrastructure.repositories.users.base import (
     IUserRepository,
 )
-from infrastructure.repositories.users.converters import convert_user_model_to_entity
+from infrastructure.repositories.users.converters import (
+    convert_user_entity_to_model,
+    convert_user_model_to_entity,
+)
 from infrastructure.repositories.users.filters.users import GetUsersFilters
 
 
@@ -16,12 +20,13 @@ from infrastructure.repositories.users.filters.users import GetUsersFilters
 class SqlAlchemyUserRepository(IUserRepository, ISqlAlchemyRepository):
     _model: type[UserModel] = UserModel
 
-    async def add(self, user: UserModel) -> None:
+    async def add(self, user: UserEntity) -> None:
+        user_model = convert_user_entity_to_model(user)
         async with self.get_session() as session:
-            session.add(user)
+            session.add(user_model)
             await session.commit()
 
-    async def get_by_oid(self, oid: str) -> UserModel | None:
+    async def get_by_oid(self, oid: str) -> UserEntity | None:
         async with self.get_session() as session:
             result = await session.execute(select(self._model).filter_by(oid=oid))
             user = result.scalars().first()
@@ -29,7 +34,7 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlAlchemyRepository):
             if user:
                 return convert_user_model_to_entity(user)
 
-    async def get_by_username(self, username: str) -> UserModel | None:
+    async def get_by_username(self, username: str) -> UserEntity | None:
         async with self.get_session() as session:
             result = await session.execute(
                 select(self._model).filter_by(username=username)
@@ -41,7 +46,7 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlAlchemyRepository):
 
     async def get_all(
         self, filters: GetUsersFilters
-    ) -> tuple[Iterable[UserModel], int]:
+    ) -> tuple[Iterable[UserEntity], int]:
         async with self.get_session() as session:
             query = select(self._model).limit(filters.limit).offset(filters.offset)
             result = await session.execute(query)
@@ -56,7 +61,7 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlAlchemyRepository):
 
             return users, count
 
-    async def delete(self, oid: str) -> UserModel | None:
+    async def delete(self, oid: str) -> UserEntity | None:
         async with self.get_session() as session:
             result = await session.execute(select(self._model).filter_by(oid=oid))
             user = result.scalars().first()

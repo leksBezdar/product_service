@@ -45,6 +45,7 @@ class Phone(BaseValueObject):
 
         phone_pattern = re.compile(r"^\+?[\d\s\-\(\)]+$")
         if not phone_pattern.match(self.value):
+            raise Exception(self.value)
             raise InvalidPhoneFormat(self.value)
 
         digits_only = re.sub(r"\D", "", self.value)
