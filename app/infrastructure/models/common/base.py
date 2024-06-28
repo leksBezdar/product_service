@@ -2,7 +2,7 @@ import re
 import uuid
 from datetime import datetime
 
-from sqlalchemy import UUID, DateTime
+from sqlalchemy import DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 
@@ -31,8 +31,8 @@ class Base(DeclarativeBase):
 
 
 class BaseIDMixin:
-    oid: Mapped[uuid.UUID] = mapped_column(
-        UUID, primary_key=True, index=True, default=uuid.uuid4
+    oid: Mapped[str] = mapped_column(
+        primary_key=True, index=True, default=str(uuid.uuid4)
     )
 
 

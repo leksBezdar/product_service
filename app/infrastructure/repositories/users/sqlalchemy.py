@@ -59,9 +59,8 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
             users = result.scalars().all()
             users = [convert_user_model_to_entity(user) for user in users]
 
-            count = await session.execute(
-                select([func.count()]).select_from(self._model)
-            )
+            count = await session.execute(select(func.count()).select_from(self._model))
+
             count = count.scalar()
 
             return users, count

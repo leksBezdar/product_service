@@ -12,6 +12,7 @@ from logic.commands.users import CreateUserCommand, CreateUserCommandHandler
 from logic.mediator.base import Mediator
 from logic.mediator.event import EventMediator
 
+from logic.queries.users import GetUsersQuery, GetUsersQueryHandler
 from settings.settings import Settings
 
 
@@ -24,7 +25,6 @@ def _init_container() -> Container:
     container = Container()
 
     container.register(Settings, instance=Settings(), scope=Scope.singleton)
-
     settings: Settings = container.resolve(Settings)  # noqa
 
     def init_user_sqlalchemy_repository() -> IUserRepository:
@@ -37,6 +37,9 @@ def _init_container() -> Container:
 
     # Command handlers
     container.register(CreateUserCommandHandler)
+
+    # Query Handlers
+    container.register(GetUsersQueryHandler)
 
     # Message broker
     def create_message_broker() -> IMessageBroker:
@@ -65,6 +68,12 @@ def _init_container() -> Container:
         mediator.register_command(
             CreateUserCommand,
             [create_user_handler],
+        )
+
+        # Query Handlers
+        mediator.register_query(
+            GetUsersQuery,
+            container.resolve(GetUsersQueryHandler),
         )
 
         return mediator
