@@ -1,5 +1,5 @@
 from domain.entities.users import UserEntity
-from domain.values.users import Phone, Username
+from domain.values.users import Password, Phone, Username
 from infrastructure.models.users import UserModel
 
 
@@ -19,7 +19,7 @@ def convert_user_model_to_entity(user: UserModel) -> UserEntity:
         oid=user.oid,
         phone=Phone(value=user.phone),
         username=Username(value=user.username),
-        password=user.password,
+        password=Password(value=user.password),
         created_at=user.created_at,
         is_verified=user.is_verified,
     )

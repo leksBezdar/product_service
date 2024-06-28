@@ -7,7 +7,6 @@ from domain.exceptions.users import (
     EmptyPassword,
     EmptyUsername,
     InvalidPasswordLength,
-    InvalidPhoneFormat,
     InvalidPhoneLength,
     InvalidUsernameCharacters,
     InvalidUsernameLength,
@@ -40,8 +39,8 @@ class Phone(BaseValueObject):
     value: str
 
     def __post_init__(self) -> None:
-        super().__post_init__()
         self.format_to_digits_only()
+        super().__post_init__()
 
     def format_to_digits_only(self) -> None:
         digits_only = re.sub(r"\D", "", self.value)
@@ -50,10 +49,6 @@ class Phone(BaseValueObject):
     def validate(self):
         if not self.value:
             raise EmptyPhone()
-
-        phone_pattern = re.compile(r"^\+?[\d\s\-\(\)]{8,64}$")
-        if not phone_pattern.match(self.value):
-            raise InvalidPhoneFormat(self.value)
 
         phone_length = len(self.value)
         if phone_length not in range(8, 65):
@@ -66,6 +61,7 @@ class Phone(BaseValueObject):
 @dataclass
 class Password(BaseValueObject):
     value: str
+    __is_hashed: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -80,9 +76,10 @@ class Password(BaseValueObject):
         if value_length not in range(3, 100):
             raise InvalidPasswordLength(value_length)
 
-    @staticmethod
-    def hash_password(password: str) -> str:
-        return hashlib.sha256(password.encode()).hexdigest()
+    def hash_password(self, password: str) -> str:
+        if not self.__is_hashed:
+            self.value = hashlib.sha256(password.encode()).hexdigest()
+            self.__is_hashed = True
 
     def as_generic_type(self):
         return str(self.value)

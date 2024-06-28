@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable
 
 from domain.entities.users import UserEntity
+from domain.values.users import Username
 from infrastructure.repositories.users.filters.users import GetUsersFilters
 
 
@@ -27,3 +28,9 @@ class IUserRepository(ABC):
     async def check_user_exists_by_phone_and_username(
         self, phone: str, username: str
     ) -> bool: ...
+
+    @abstractmethod
+    async def update(self, user: UserEntity) -> UserEntity: ...
+
+    @abstractmethod
+    async def get_existing_usernames(self) -> list[Username]: ...

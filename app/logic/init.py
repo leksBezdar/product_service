@@ -9,6 +9,8 @@ from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
 from logic.commands.users import (
+    ChangeUsernameCommand,
+    ChangeUsernameCommandHandler,
     CreateUserCommand,
     CreateUserCommandHandler,
     DeleteUserCommand,
@@ -17,7 +19,12 @@ from logic.commands.users import (
 from logic.mediator.base import Mediator
 from logic.mediator.event import EventMediator
 
-from logic.queries.users import GetUsersQuery, GetUsersQueryHandler
+from logic.queries.users import (
+    GetUserQuery,
+    GetUserQueryHandler,
+    GetUsersQuery,
+    GetUsersQueryHandler,
+)
 from settings.settings import Settings
 
 
@@ -42,10 +49,12 @@ def _init_container() -> Container:
 
     # Command handlers
     container.register(CreateUserCommandHandler)
+    container.register(ChangeUsernameCommandHandler)
     container.register(DeleteUserCommandHandler)
 
     # Query Handlers
     container.register(GetUsersQueryHandler)
+    container.register(GetUserQueryHandler)
 
     # Message broker
     def create_message_broker() -> IMessageBroker:
@@ -71,6 +80,10 @@ def _init_container() -> Container:
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
         )
+        change_username_handler = ChangeUsernameCommandHandler(
+            _mediator=mediator,
+            user_repository=container.resolve(IUserRepository),
+        )
         delete_user_handler = DeleteUserCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
@@ -78,6 +91,10 @@ def _init_container() -> Container:
         mediator.register_command(
             CreateUserCommand,
             [create_user_handler],
+        )
+        mediator.register_command(
+            ChangeUsernameCommand,
+            [change_username_handler],
         )
         mediator.register_command(
             DeleteUserCommand,
@@ -88,6 +105,10 @@ def _init_container() -> Container:
         mediator.register_query(
             GetUsersQuery,
             container.resolve(GetUsersQueryHandler),
+        )
+        mediator.register_query(
+            GetUserQuery,
+            container.resolve(GetUserQueryHandler),
         )
 
         return mediator

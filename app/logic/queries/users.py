@@ -27,7 +27,7 @@ class GetUserQueryHandler(BaseQueryHandler):
     user_repository: IUserRepository
 
     async def handle(self, query: GetUserQuery) -> UserEntity:
-        user = await self.user_repository.get_by_oid(user_oid=query.user_oid)
+        user = await self.user_repository.get_by_oid(oid=query.user_oid)
         if not user:
             raise UserNotFoundException(value=query.user_oid)
 

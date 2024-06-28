@@ -4,6 +4,7 @@ from typing import Iterable
 from sqlalchemy import func, or_, select
 
 from domain.entities.users import UserEntity
+from domain.values.users import Username
 from infrastructure.exception_mapper import exception_mapper
 from infrastructure.models.users import UserModel
 from infrastructure.repositories.common.repository import ISqlalchemyRepository
@@ -86,3 +87,21 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
                 )
             )
             return result.scalars().first() is not None
+
+    @exception_mapper
+    async def update(self, user: UserEntity) -> UserEntity:
+        async with self.get_session() as session:
+            user_model = convert_user_entity_to_model(user)
+            await session.merge(user_model)
+            await session.commit()
+
+            return convert_user_model_to_entity(user_model)
+
+    @exception_mapper
+    async def get_existing_usernames(self) -> list[Username]:
+        async with self.get_session() as session:
+            result: Iterable[str] = await session.scalars(
+                select(self._model.username).where(self._model.username.is_not(None))
+            )
+            existing_usernames = [Username(username) for username in result]
+            return existing_usernames

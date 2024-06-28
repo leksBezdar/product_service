@@ -73,4 +73,8 @@ class SGetUser(BaseModel):
         )
 
 
+class SChangeUsername(BaseModel):
+    new_username: str
+
+
 class SGetUsersQueryResponse(SBaseQueryResponse[list[SGetUser]]): ...

@@ -28,6 +28,9 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
         phone = Phone(value=command.phone)
         password = Password(value=command.password)
 
+        existing_usernames = await self.user_repository.get_existing_usernames()
+
+        # TODO move existing check to entity layer
         if await self.user_repository.check_user_exists_by_phone_and_username(
             phone=phone.as_generic_type(), username=username.as_generic_type()
         ):
@@ -37,12 +40,39 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
             username=username,
             phone=phone,
             password=password,
+            existing_usernames=existing_usernames,
         )
 
         await self.user_repository.add(new_user)
         await self._mediator.publish(new_user.pull_events())
 
         return new_user
+
+
+@dataclass(frozen=True)
+class ChangeUsernameCommand(BaseCommand):
+    user_oid: str
+    new_username: str
+
+
+@dataclass(frozen=True)
+class ChangeUsernameCommandHandler(CommandHandler[ChangeUsernameCommand, UserEntity]):
+    user_repository: IUserRepository
+
+    async def handle(self, command: ChangeUsernameCommand) -> UserEntity:
+        user = await self.user_repository.get_by_oid(oid=command.user_oid)
+        existing_usernames = await self.user_repository.get_existing_usernames()
+        if not user:
+            raise UserNotFoundException(value=command.user_oid)
+
+        new_username = Username(value=command.new_username)
+        await user.change_username(
+            new_username=new_username, existing_usernames=existing_usernames
+        )
+        await self.user_repository.update(user)
+        await self._mediator.publish(user.pull_events())
+
+        return user
 
 
 @dataclass(frozen=True)
