@@ -25,7 +25,7 @@ all:
 
 .PHONY: app-down
 app-down:
-	${DC} -f ${APP_FILE} down
+	${DC} -f ${APP_FILE} -f ${STORAGES_FILE} down
 
 .PHONY: app-shell
 app-shell:
@@ -34,3 +34,16 @@ app-shell:
 .PHONY: app-logs
 app-logs:
 	${LOGS} ${APP_CONTAINER} -f
+
+.PHONY: migrate
+migrate:
+	@if [ -z "${name}" ]; then echo "Description is required. Usage: make migrations name=\"description\""; exit 1; fi
+	${EXEC} ${APP_CONTAINER} alembic revision --autogenerate -m "${name}"
+
+.PHONY: upgrade
+upgrade:
+	${EXEC} ${APP_CONTAINER} alembic upgrade head
+
+.PHONY: downgrade
+downgrade:
+	${EXEC} ${APP_CONTAINER} alembic downgrade -1
