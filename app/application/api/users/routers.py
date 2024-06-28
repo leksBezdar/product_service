@@ -13,6 +13,7 @@ from application.api.users.schemas import (
 from domain.exceptions.base import ApplicationException
 from logic.commands.users import (
     CreateUserCommand,
+    DeleteUserCommand,
 )
 from logic.init import init_container
 from logic.mediator.base import Mediator
@@ -79,3 +80,23 @@ async def get_users(
         offset=filters.offset,
         items=[SGetUser.from_entity(user) for user in users],
     )
+
+
+@user_router.delete(
+    "/{user_oid}/",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
+    },
+)
+async def delete_user(
+    user_oid: str,
+    container: Annotated[Container, Depends(init_container)],
+) -> None:
+    """Delete user."""
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        await mediator.handle_command(DeleteUserCommand(user_oid=user_oid))
+    except ApplicationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)

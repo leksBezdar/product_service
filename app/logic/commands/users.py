@@ -24,15 +24,19 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
     user_repository: IUserRepository
 
     async def handle(self, command: CreateUserCommand) -> UserEntity:
+        username = Username(value=command.username)
+        phone = Phone(value=command.phone)
+        password = Password(value=command.password)
+
         if await self.user_repository.check_user_exists_by_phone_and_username(
-            phone=command.phone, username=command.username
+            phone=phone.as_generic_type(), username=username.as_generic_type()
         ):
             raise UserAlreadyExistsException()
 
         new_user = await UserEntity.create(
-            username=Username(value=command.username),
-            phone=Phone(value=command.phone),
-            password=Password(value=command.password),
+            username=username,
+            phone=phone,
+            password=password,
         )
 
         await self.user_repository.add(new_user)

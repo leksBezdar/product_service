@@ -1,12 +1,15 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from application.api.schemas import SBaseQueryResponse
 from domain.entities.users import UserEntity
 
 
 class SCreateUserIn(BaseModel):
-    phone: str
+    phone: str = Field(
+        ...,
+        pattern=r"^\+?[\d\s\-\(\)]{8,64}$",
+    )
     username: str
     password: str
 

@@ -51,7 +51,7 @@ class Phone(BaseValueObject):
         if not self.value:
             raise EmptyPhone()
 
-        phone_pattern = re.compile(r"^\+?[\d\s\-\(\)]+$")
+        phone_pattern = re.compile(r"^\+?[\d\s\-\(\)]{8,64}$")
         if not phone_pattern.match(self.value):
             raise InvalidPhoneFormat(self.value)
 

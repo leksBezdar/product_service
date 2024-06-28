@@ -8,7 +8,12 @@ from infrastructure.message_brokers.base import IMessageBroker
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
-from logic.commands.users import CreateUserCommand, CreateUserCommandHandler
+from logic.commands.users import (
+    CreateUserCommand,
+    CreateUserCommandHandler,
+    DeleteUserCommand,
+    DeleteUserCommandHandler,
+)
 from logic.mediator.base import Mediator
 from logic.mediator.event import EventMediator
 
@@ -37,6 +42,7 @@ def _init_container() -> Container:
 
     # Command handlers
     container.register(CreateUserCommandHandler)
+    container.register(DeleteUserCommandHandler)
 
     # Query Handlers
     container.register(GetUsersQueryHandler)
@@ -65,9 +71,17 @@ def _init_container() -> Container:
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
         )
+        delete_user_handler = DeleteUserCommandHandler(
+            _mediator=mediator,
+            user_repository=container.resolve(IUserRepository),
+        )
         mediator.register_command(
             CreateUserCommand,
             [create_user_handler],
+        )
+        mediator.register_command(
+            DeleteUserCommand,
+            [delete_user_handler],
         )
 
         # Query Handlers
