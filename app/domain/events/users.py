@@ -24,7 +24,7 @@ class UserChangedUsernameEvent(BaseEvent):
 
 @dataclass
 class UserChangedPasswordEvent(BaseEvent):
-    title: ClassVar[str] = "Username Changed"
+    title: ClassVar[str] = "Password Changed"
 
     user_oid: str
 
