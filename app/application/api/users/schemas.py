@@ -77,4 +77,9 @@ class SChangeUsername(BaseModel):
     new_username: str
 
 
+class SChangePassword(BaseModel):
+    old_password: str
+    new_password: str
+
+
 class SGetUsersQueryResponse(SBaseQueryResponse[list[SGetUser]]): ...

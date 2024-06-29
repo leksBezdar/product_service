@@ -19,7 +19,7 @@ def convert_user_model_to_entity(user: UserModel) -> UserEntity:
         oid=user.oid,
         phone=Phone(value=user.phone),
         username=Username(value=user.username),
-        password=Password(value=user.password),
+        password=Password(value=user.password, is_hashed=True),
         created_at=user.created_at,
         is_verified=user.is_verified,
     )

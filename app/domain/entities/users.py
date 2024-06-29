@@ -5,6 +5,7 @@ from domain.entities.base import BaseEntity
 from domain.exceptions.users import UserAlreadyDeleted
 from domain.values.users import Username, Phone, Password
 from domain.events.users import (
+    UserChangedPasswordEvent,
     UserChangedUsernameEvent,
     UserCreatedEvent,
     UserDeletedEvent,
@@ -49,8 +50,16 @@ class UserEntity(BaseEntity):
         self.register_event(
             UserChangedUsernameEvent(
                 user_oid=self.oid,
-                old_username=self.username.as_generic_type(),
-                new_username=new_username.as_generic_type(),
+            )
+        )
+
+    async def change_password(self, new_password: Password) -> None:
+        self._validate_not_deleted()
+        self.password = new_password
+
+        self.register_event(
+            UserChangedPasswordEvent(
+                user_oid=self.oid,
             )
         )
 

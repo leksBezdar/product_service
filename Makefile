@@ -17,7 +17,7 @@ storages:
 
 .PHONY: postgres
 postgres:
-	${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME}
+	${EXEC} ${DB_CONTAINER} psql -U ${DB_USER} -d ${DB_NAME} -p ${DB_PORT}
 
 .PHONY: all
 all:

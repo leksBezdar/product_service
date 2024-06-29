@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from application.api.schemas import SErrorMessage
 from application.api.users.filters import GetUsersFilters
 from application.api.users.schemas import (
+    SChangePassword,
     SChangeUsername,
     SCreateUserIn,
     SCreateUserOut,
@@ -13,6 +14,7 @@ from application.api.users.schemas import (
 )
 from domain.exceptions.base import ApplicationException
 from logic.commands.users import (
+    ChangePasswordCommand,
     ChangeUsernameCommand,
     CreateUserCommand,
     DeleteUserCommand,
@@ -106,11 +108,10 @@ async def get_user(
     return SGetUser.from_entity(user)
 
 
-@user_router.put(
-    "/{user_oid}/",
-    status_code=status.HTTP_200_OK,
+@user_router.patch(
+    "/{user_oid}/username",
+    status_code=status.HTTP_204_NO_CONTENT,
     responses={
-        status.HTTP_200_OK: {"model": SGetUser},
         status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
     },
 )
@@ -118,11 +119,11 @@ async def change_username(
     user_oid: str,
     user_in: SChangeUsername,
     container: Annotated[Container, Depends(init_container)],
-) -> SGetUser:
+):
     mediator: Mediator = container.resolve(Mediator)
 
     try:
-        user, *_ = await mediator.handle_command(
+        await mediator.handle_command(
             ChangeUsernameCommand(
                 user_oid=user_oid,
                 new_username=user_in.new_username,
@@ -131,7 +132,31 @@ async def change_username(
     except ApplicationException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
 
-    return SGetUser.from_entity(user)
+
+@user_router.patch(
+    "/{user_oid}/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
+    },
+)
+async def change_password(
+    user_oid: str,
+    user_in: SChangePassword,
+    container: Annotated[Container, Depends(init_container)],
+):
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        await mediator.handle_command(
+            ChangePasswordCommand(
+                user_oid=user_oid,
+                old_password=user_in.old_password,
+                new_password=user_in.new_password,
+            )
+        )
+    except ApplicationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
 
 
 @user_router.delete(

@@ -9,6 +9,8 @@ from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
 from logic.commands.users import (
+    ChangePasswordCommand,
+    ChangePasswordCommandHandler,
     ChangeUsernameCommand,
     ChangeUsernameCommandHandler,
     CreateUserCommand,
@@ -50,6 +52,7 @@ def _init_container() -> Container:
     # Command handlers
     container.register(CreateUserCommandHandler)
     container.register(ChangeUsernameCommandHandler)
+    container.register(ChangePasswordCommandHandler)
     container.register(DeleteUserCommandHandler)
 
     # Query Handlers
@@ -84,6 +87,10 @@ def _init_container() -> Container:
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
         )
+        change_password_handler = ChangePasswordCommandHandler(
+            _mediator=mediator,
+            user_repository=container.resolve(IUserRepository),
+        )
         delete_user_handler = DeleteUserCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
@@ -95,6 +102,10 @@ def _init_container() -> Container:
         mediator.register_command(
             ChangeUsernameCommand,
             [change_username_handler],
+        )
+        mediator.register_command(
+            ChangePasswordCommand,
+            [change_password_handler],
         )
         mediator.register_command(
             DeleteUserCommand,

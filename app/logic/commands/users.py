@@ -7,6 +7,7 @@ from infrastructure.repositories.users.base import (
 )
 from logic.commands.base import BaseCommand, CommandHandler
 from logic.exceptions.users import (
+    InvalidCredentialsException,
     UserAlreadyExistsException,
     UserNotFoundException,
     UsernameAlreadyExists,
@@ -54,10 +55,10 @@ class ChangeUsernameCommand(BaseCommand):
 
 
 @dataclass(frozen=True)
-class ChangeUsernameCommandHandler(CommandHandler[ChangeUsernameCommand, UserEntity]):
+class ChangeUsernameCommandHandler(CommandHandler[ChangeUsernameCommand, None]):
     user_repository: IUserRepository
 
-    async def handle(self, command: ChangeUsernameCommand) -> UserEntity:
+    async def handle(self, command: ChangeUsernameCommand) -> None:
         user = await self.user_repository.get_by_oid(oid=command.user_oid)
         if not user:
             raise UserNotFoundException(value=command.user_oid)
@@ -73,7 +74,29 @@ class ChangeUsernameCommandHandler(CommandHandler[ChangeUsernameCommand, UserEnt
             await self.user_repository.update(user)
             await self._mediator.publish(user.pull_events())
 
-        return user
+
+@dataclass(frozen=True)
+class ChangePasswordCommand(BaseCommand):
+    user_oid: str
+    old_password: str
+    new_password: str
+
+
+@dataclass(frozen=True)
+class ChangePasswordCommandHandler(CommandHandler[ChangePasswordCommand, None]):
+    user_repository: IUserRepository
+
+    async def handle(self, command: ChangePasswordCommand) -> None:
+        user = await self.user_repository.get_by_oid(oid=command.user_oid)
+        if not user:
+            raise UserNotFoundException(value=command.user_oid)
+        if not user.password.check_password(command.old_password):
+            raise InvalidCredentialsException()
+
+        new_password = Password(value=command.new_password)
+        await user.change_password(new_password=new_password)
+        await self.user_repository.update(user)
+        await self._mediator.publish(user.pull_events())
 
 
 @dataclass(frozen=True)

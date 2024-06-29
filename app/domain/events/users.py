@@ -23,6 +23,13 @@ class UserChangedUsernameEvent(BaseEvent):
 
 
 @dataclass
+class UserChangedPasswordEvent(BaseEvent):
+    title: ClassVar[str] = "Username Changed"
+
+    user_oid: str
+
+
+@dataclass
 class UserDeletedEvent(BaseEvent):
     title: ClassVar[str] = "User was deleted"
 
