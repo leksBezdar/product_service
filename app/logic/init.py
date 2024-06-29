@@ -22,8 +22,10 @@ from logic.mediator.base import Mediator
 from logic.mediator.event import EventMediator
 
 from logic.queries.users import (
-    GetUserQuery,
-    GetUserQueryHandler,
+    GetUserByIdQuery,
+    GetUserByIdQueryHandler,
+    GetUserByUsernameQuery,
+    GetUserByUsernameQueryHandler,
     GetUsersQuery,
     GetUsersQueryHandler,
 )
@@ -57,7 +59,8 @@ def _init_container() -> Container:
 
     # Query Handlers
     container.register(GetUsersQueryHandler)
-    container.register(GetUserQueryHandler)
+    container.register(GetUserByIdQueryHandler)
+    container.register(GetUserByUsernameQueryHandler)
 
     # Message broker
     def create_message_broker() -> IMessageBroker:
@@ -118,8 +121,12 @@ def _init_container() -> Container:
             container.resolve(GetUsersQueryHandler),
         )
         mediator.register_query(
-            GetUserQuery,
-            container.resolve(GetUserQueryHandler),
+            GetUserByIdQuery,
+            container.resolve(GetUserByIdQueryHandler),
+        )
+        mediator.register_query(
+            GetUserByUsernameQuery,
+            container.resolve(GetUserByUsernameQueryHandler),
         )
 
         return mediator

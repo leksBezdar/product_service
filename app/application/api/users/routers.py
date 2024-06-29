@@ -21,14 +21,14 @@ from logic.commands.users import (
 )
 from logic.init import init_container
 from logic.mediator.base import Mediator
-from logic.queries.users import GetUserQuery, GetUsersQuery
+from logic.queries.users import GetUserByIdQuery, GetUserByUsernameQuery, GetUsersQuery
 
 
 user_router = APIRouter()
 
 
 @user_router.post(
-    "",
+    "/",
     status_code=status.HTTP_201_CREATED,
     responses={
         status.HTTP_201_CREATED: {"model": SCreateUserOut},
@@ -57,14 +57,14 @@ async def create_user(
 
 
 @user_router.get(
-    "/users/",
+    "/",
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_200_OK: {"model": SGetUsersQueryResponse},
         status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
     },
 )
-async def get_users(
+async def get_all_users(
     container: Annotated[Container, Depends(init_container)],
     filters: GetUsersFilters = Depends(),
 ) -> SGetUsersQueryResponse:
@@ -94,14 +94,36 @@ async def get_users(
         status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
     },
 )
-async def get_user(
+async def get_user_by_id(
     user_oid: str,
     container: Annotated[Container, Depends(init_container)],
 ):
-    """Get user user info."""
+    """Get user by id."""
     mediator: Mediator = container.resolve(Mediator)
     try:
-        user = await mediator.handle_query(GetUserQuery(user_oid=user_oid))
+        user = await mediator.handle_query(GetUserByIdQuery(user_oid=user_oid))
+    except ApplicationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+
+    return SGetUser.from_entity(user)
+
+
+@user_router.get(
+    "/@{username}/",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_200_OK: {"model": SGetUser},
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
+    },
+)
+async def get_user_by_username(
+    username: str,
+    container: Annotated[Container, Depends(init_container)],
+):
+    """Get user by username."""
+    mediator: Mediator = container.resolve(Mediator)
+    try:
+        user = await mediator.handle_query(GetUserByUsernameQuery(username=username))
     except ApplicationException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
 
@@ -109,7 +131,7 @@ async def get_user(
 
 
 @user_router.patch(
-    "/{user_oid}/username",
+    "/{user_oid}/username/",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
         status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
@@ -134,7 +156,7 @@ async def change_username(
 
 
 @user_router.patch(
-    "/{user_oid}/password",
+    "/{user_oid}/password/",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
         status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},

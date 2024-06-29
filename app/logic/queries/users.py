@@ -18,15 +18,23 @@ class GetUsersQuery(BaseQuery):
 
 
 @dataclass(frozen=True)
-class GetUserQuery(BaseQuery):
+class GetUsersQueryHandler(BaseQueryHandler):
+    user_repository: IUserRepository
+
+    async def handle(self, query: GetUsersQuery) -> Iterable[UserEntity]:
+        return await self.user_repository.get_all(filters=query.filters)
+
+
+@dataclass(frozen=True)
+class GetUserByIdQuery(BaseQuery):
     user_oid: str
 
 
 @dataclass(frozen=True)
-class GetUserQueryHandler(BaseQueryHandler):
+class GetUserByIdQueryHandler(BaseQueryHandler):
     user_repository: IUserRepository
 
-    async def handle(self, query: GetUserQuery) -> UserEntity:
+    async def handle(self, query: GetUserByIdQuery) -> UserEntity:
         user = await self.user_repository.get_by_oid(oid=query.user_oid)
         if not user:
             raise UserNotFoundException(value=query.user_oid)
@@ -35,8 +43,17 @@ class GetUserQueryHandler(BaseQueryHandler):
 
 
 @dataclass(frozen=True)
-class GetUsersQueryHandler(BaseQueryHandler):
+class GetUserByUsernameQuery(BaseQuery):
+    username: str
+
+
+@dataclass(frozen=True)
+class GetUserByUsernameQueryHandler(BaseQueryHandler):
     user_repository: IUserRepository
 
-    async def handle(self, query: GetUsersQuery) -> Iterable[UserEntity]:
-        return await self.user_repository.get_all(filters=query.filters)
+    async def handle(self, query: GetUserByUsernameQuery) -> UserEntity:
+        user = await self.user_repository.get_by_username(username=query.username)
+        if not user:
+            raise UserNotFoundException(value=query.username)
+
+        return user
