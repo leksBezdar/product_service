@@ -14,5 +14,7 @@ services:
       - POSTGRES_PASSWORD=${DB_PASS}
     env_file:
       - ../.env
+    command:
+      -p ${DB_PORT}
 volumes:
   postgres_data:

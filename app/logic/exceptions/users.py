@@ -24,3 +24,12 @@ class InvalidCredentialsException(LogicException):
     @property
     def message(self) -> str:
         return "Invalid credentials were provided"
+
+
+@dataclass(eq=False)
+class UsernameAlreadyExists(LogicException):
+    value: str
+
+    @property
+    def message(self) -> str:
+        return f"User with username {self.value} already exists"

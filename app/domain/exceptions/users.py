@@ -76,12 +76,3 @@ class UserAlreadyDeleted(ApplicationException):
     @property
     def message(self) -> str:
         return f"User with id {self.value} has already been deleted"
-
-
-@dataclass(eq=False)
-class UsernameAlreadyExists(ApplicationException):
-    value: str
-
-    @property
-    def message(self) -> str:
-        return f"User with username {self.value} already exists"

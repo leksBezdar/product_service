@@ -9,6 +9,7 @@ from logic.commands.base import BaseCommand, CommandHandler
 from logic.exceptions.users import (
     UserAlreadyExistsException,
     UserNotFoundException,
+    UsernameAlreadyExists,
 )
 
 
@@ -28,8 +29,6 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
         phone = Phone(value=command.phone)
         password = Password(value=command.password)
 
-        existing_usernames = await self.user_repository.get_existing_usernames()
-
         # TODO move existing check to entity layer
         if await self.user_repository.check_user_exists_by_phone_and_username(
             phone=phone.as_generic_type(), username=username.as_generic_type()
@@ -40,7 +39,6 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
             username=username,
             phone=phone,
             password=password,
-            existing_usernames=existing_usernames,
         )
 
         await self.user_repository.add(new_user)
@@ -61,16 +59,19 @@ class ChangeUsernameCommandHandler(CommandHandler[ChangeUsernameCommand, UserEnt
 
     async def handle(self, command: ChangeUsernameCommand) -> UserEntity:
         user = await self.user_repository.get_by_oid(oid=command.user_oid)
-        existing_usernames = await self.user_repository.get_existing_usernames()
         if not user:
             raise UserNotFoundException(value=command.user_oid)
 
-        new_username = Username(value=command.new_username)
-        await user.change_username(
-            new_username=new_username, existing_usernames=existing_usernames
-        )
-        await self.user_repository.update(user)
-        await self._mediator.publish(user.pull_events())
+        if command.new_username != user.username.as_generic_type():
+            existing_usernames = await self.user_repository.get_existing_usernames()
+
+            if command.new_username in existing_usernames:
+                raise UsernameAlreadyExists(command.new_username)
+
+            new_username = Username(value=command.new_username)
+            await user.change_username(new_username=new_username)
+            await self.user_repository.update(user)
+            await self._mediator.publish(user.pull_events())
 
         return user
 
