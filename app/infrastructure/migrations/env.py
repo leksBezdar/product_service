@@ -5,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 
 
 from infrastructure.models.users import UserModel  # noqa
+from infrastructure.models.products import ProductModel  # noqa
 from infrastructure.models.common.base import Base
 from settings.settings import settings
 

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Iterable
 
 from sqlalchemy import func, or_, select
@@ -52,6 +53,7 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
     async def get_all(
         self, filters: GetUsersFilters
     ) -> tuple[Iterable[UserEntity], int]:
+        # TODO exclude deleted users
         async with self.get_session() as session:
             query = select(self._model).limit(filters.limit).offset(filters.offset)
             result = await session.execute(query)
@@ -70,7 +72,9 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
             result = await session.execute(select(self._model).filter_by(oid=oid))
             user = result.scalars().first()
             if user:
-                await session.delete(user)
+                user.is_deleted = True
+                # TODO fix time zone
+                user.deleted_at = datetime.now(UTC)
                 await session.commit()
 
                 return convert_user_model_to_entity(user)

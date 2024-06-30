@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, ClassVar
 
-from sqlalchemy import TIMESTAMP, Null
+from sqlalchemy import ARRAY, TIMESTAMP, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -17,12 +17,12 @@ class ProductModel(Base, BaseIDMixin):
     quantity: Mapped[int] = mapped_column(nullable=False)
     vendor: Mapped[str] = mapped_column(nullable=False)
 
-    images: Mapped[list[str]] = mapped_column(nullable=False, default_factory=list)
-    categories: Mapped[list[str]] = mapped_column(nullable=False, default_factory=list)
-    tags: Mapped[list[str]] = mapped_column(nullable=False, default_factory=list)
+    images: Mapped[list] = mapped_column(ARRAY(String), nullable=False, default=[])
+    categories: Mapped[list] = mapped_column(ARRAY(String), nullable=False, default=[])
+    tags: Mapped[list] = mapped_column(ARRAY(String), nullable=False, default=[])
     warranty_period: Mapped[str | None] = mapped_column(default=None)
-    storage_instructions: Mapped[list[str]] = mapped_column(
-        nullable=False, default_factory=list
+    storage_instructions: Mapped[list] = mapped_column(
+        ARRAY(String), nullable=False, default=[]
     )
 
     is_deleted: Mapped[bool] = mapped_column(default=False)
@@ -33,7 +33,7 @@ class ProductModel(Base, BaseIDMixin):
         TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(timezone=True), default=None, server_default=Null()
+        TIMESTAMP(timezone=True), default=None
     )
 
     def __str__(self):

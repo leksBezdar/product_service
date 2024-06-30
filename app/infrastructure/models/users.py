@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, ClassVar
 
-from sqlalchemy import TIMESTAMP, Null
+from sqlalchemy import TIMESTAMP, Null, text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -19,6 +19,9 @@ class UserModel(Base, BaseIDMixin):
     )
 
     is_verified: Mapped[bool] = mapped_column()
+    is_deleted: Mapped[bool] = mapped_column(
+        default=False, server_default=text("false")
+    )
     deleted_at: Mapped[datetime | None] = mapped_column(
         default=None, server_default=Null()
     )
