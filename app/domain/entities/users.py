@@ -45,11 +45,14 @@ class UserEntity(BaseEntity):
 
     async def change_username(self, new_username: Username) -> None:
         self._validate_not_deleted()
+        old_username = self.username
         self.username = new_username
 
         self.register_event(
             UserChangedUsernameEvent(
                 user_oid=self.oid,
+                old_username=old_username,
+                new_username=new_username,
             )
         )
 
