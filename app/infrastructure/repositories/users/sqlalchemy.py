@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterable
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import Select, func, or_, select
 
 from domain.entities.users import UserEntity
 from infrastructure.exception_mapper import exception_mapper
@@ -54,18 +54,8 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
         self, filters: GetUsersFilters
     ) -> tuple[Iterable[UserEntity], int]:
         async with self.get_session() as session:
-            # TODO Move out query building
-            get_users_query = (
-                select(self._model)
-                .limit(filters.limit)
-                .offset(filters.offset)
-                .where(self._model.is_deleted == filters.show_deleted)
-            )
-            count_users_query = (
-                select(func.count())
-                .select_from(self._model)
-                .where(self._model.is_deleted == filters.show_deleted)
-            )
+            get_users_query = self._build_get_users_query(filters)
+            count_users_query = self._build_count_users_query(filters)
 
             get_users_result = await session.execute(get_users_query)
             count_result = await session.execute(count_users_query)
@@ -75,6 +65,24 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
 
             users = [convert_user_model_to_entity(user) for user in users]
             return users, count
+
+    def _build_get_users_query(self, filters: GetUsersFilters) -> Select:
+        query = select(self._model).limit(filters.limit).offset(filters.offset)
+        query = self._apply_filters(query, filters)
+
+        return query
+
+    def _build_count_users_query(self, filters: GetUsersFilters) -> Select:
+        query = select(func.count()).select_from(self._model)
+        query = self._apply_filters(query, filters)
+
+        return query
+
+    def _apply_filters(self, query: Select, filters: GetUsersFilters) -> Select:
+        if filters.show_deleted:
+            return query
+
+        return query.where(self._model.is_deleted == filters.show_deleted)
 
     @exception_mapper
     async def delete(self, oid: str) -> UserEntity | None:
