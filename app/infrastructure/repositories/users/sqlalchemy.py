@@ -110,6 +110,16 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
             return convert_user_model_to_entity(user_model)
 
     @exception_mapper
+    async def restore(self, user: UserEntity) -> None:
+        async with self.get_session() as session:
+            user_model = convert_user_entity_to_model(user)
+
+            user_model.is_deleted = False
+            user_model.deleted_at = None
+            await session.merge(user_model)
+            await session.commit()
+
+    @exception_mapper
     async def get_existing_usernames(self) -> list[str]:
         async with self.get_session() as session:
             return await session.scalars(

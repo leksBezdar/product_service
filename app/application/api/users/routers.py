@@ -18,6 +18,7 @@ from logic.commands.users import (
     ChangeUsernameCommand,
     CreateUserCommand,
     DeleteUserCommand,
+    RestoreUserCommand,
 )
 from logic.init import init_container
 from logic.mediator.base import Mediator
@@ -177,6 +178,25 @@ async def change_password(
                 new_password=user_in.new_password,
             )
         )
+    except ApplicationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+
+
+@user_router.patch(
+    "/{user_oid}/restore/",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
+    },
+)
+async def restore_user(
+    user_oid: str,
+    container: Annotated[Container, Depends(init_container)],
+):
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        await mediator.handle_command(RestoreUserCommand(user_oid=user_oid))
     except ApplicationException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
 

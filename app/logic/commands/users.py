@@ -100,6 +100,25 @@ class ChangePasswordCommandHandler(CommandHandler[ChangePasswordCommand, None]):
 
 
 @dataclass(frozen=True)
+class RestoreUserCommand(BaseCommand):
+    user_oid: str
+
+
+@dataclass(frozen=True)
+class RestoreUserCommandHandler(CommandHandler[RestoreUserCommand, None]):
+    user_repository: IUserRepository
+
+    async def handle(self, command: RestoreUserCommand) -> None:
+        user = await self.user_repository.get_by_oid(oid=command.user_oid)
+        if not user:
+            raise UserNotFoundException(value=command.user_oid)
+
+        await user.restore()
+        await self.user_repository.restore(user)
+        await self._mediator.publish(user.pull_events())
+
+
+@dataclass(frozen=True)
 class DeleteUserCommand(BaseCommand):
     user_oid: str
 
@@ -109,10 +128,11 @@ class DeleteUserCommandHandler(CommandHandler[DeleteUserCommand, None]):
     user_repository: IUserRepository
 
     async def handle(self, command: DeleteUserCommand) -> None:
-        user = await self.user_repository.delete(oid=command.user_oid)
+        user = await self.user_repository.get_by_oid(oid=command.user_oid)
 
         if not user:
             raise UserNotFoundException(value=command.user_oid)
 
-        user.delete()
+        await user.delete()
+        await self.user_repository.delete(oid=command.user_oid)
         await self._mediator.publish(user.pull_events())

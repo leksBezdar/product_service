@@ -17,6 +17,8 @@ from logic.commands.users import (
     CreateUserCommandHandler,
     DeleteUserCommand,
     DeleteUserCommandHandler,
+    RestoreUserCommand,
+    RestoreUserCommandHandler,
 )
 from logic.mediator.base import Mediator
 from logic.mediator.event import EventMediator
@@ -55,6 +57,7 @@ def _init_container() -> Container:
     container.register(CreateUserCommandHandler)
     container.register(ChangeUsernameCommandHandler)
     container.register(ChangePasswordCommandHandler)
+    container.register(RestoreUserCommandHandler)
     container.register(DeleteUserCommandHandler)
 
     # Query Handlers
@@ -94,6 +97,10 @@ def _init_container() -> Container:
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
         )
+        restore_user_handler = RestoreUserCommandHandler(
+            _mediator=mediator,
+            user_repository=container.resolve(IUserRepository),
+        )
         delete_user_handler = DeleteUserCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
@@ -109,6 +116,10 @@ def _init_container() -> Container:
         mediator.register_command(
             ChangePasswordCommand,
             [change_password_handler],
+        )
+        mediator.register_command(
+            RestoreUserCommand,
+            [restore_user_handler],
         )
         mediator.register_command(
             DeleteUserCommand,

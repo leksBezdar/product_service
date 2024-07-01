@@ -2,9 +2,10 @@ from dataclasses import field, dataclass
 from datetime import UTC, datetime
 
 from domain.entities.base import BaseEntity
-from domain.exceptions.users import UserAlreadyDeleted
+from domain.exceptions.users import UserAlreadyDeleted, UserNotDeleted
 from domain.values.users import Username, Phone, Password
 from domain.events.users import (
+    RestoreUserEvent,
     UserChangedPasswordEvent,
     UserChangedUsernameEvent,
     UserCreatedEvent,
@@ -65,7 +66,20 @@ class UserEntity(BaseEntity):
             )
         )
 
-    def delete(self) -> None:
+    async def restore(self) -> None:
+        self._validate_deleted()
+        self.is_deleted = False
+        self.deleted_at = None
+
+        self.register_event(
+            RestoreUserEvent(
+                user_oid=self.oid,
+                username=self.username.as_generic_type(),
+                restore_datetime=datetime.now(UTC),
+            )
+        )
+
+    async def delete(self) -> None:
         self._validate_not_deleted()
         self.is_deleted = True
         self.deleted_at = datetime.now(UTC)
@@ -81,3 +95,7 @@ class UserEntity(BaseEntity):
     def _validate_not_deleted(self) -> None:
         if self.is_deleted:
             raise UserAlreadyDeleted(self.oid)
+
+    def _validate_deleted(self) -> None:
+        if not self.is_deleted:
+            raise UserNotDeleted(self.oid)

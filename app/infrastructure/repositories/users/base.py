@@ -30,6 +30,9 @@ class IUserRepository(ABC):
     ) -> tuple[Iterable[UserEntity], int]: ...
 
     @abstractmethod
+    async def restore(self, user: UserEntity) -> None: ...
+
+    @abstractmethod
     async def update(self, user: UserEntity) -> UserEntity: ...
 
     @abstractmethod

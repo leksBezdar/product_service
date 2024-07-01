@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import ClassVar
 
 from domain.events.base import BaseEvent
@@ -27,6 +28,15 @@ class UserChangedPasswordEvent(BaseEvent):
     title: ClassVar[str] = "Password Changed"
 
     user_oid: str
+
+
+@dataclass
+class RestoreUserEvent(BaseEvent):
+    title: ClassVar[str] = "User was restored"
+
+    user_oid: str
+    username: str
+    restore_datetime: datetime
 
 
 @dataclass
