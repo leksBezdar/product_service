@@ -18,6 +18,7 @@ class UserEntity(BaseEntity):
     username: Username
     password: Password
     is_verified: bool = field(default=False, kw_only=True)
+    is_deleted: bool = field(default=False, kw_only=True)
     deleted_at: datetime | None = field(default=None, kw_only=True)
 
     @classmethod
@@ -27,8 +28,6 @@ class UserEntity(BaseEntity):
         password: Password,
         phone: Phone,
     ) -> "UserEntity":
-        # TODO define why username is unhashable
-
         new_user = cls(
             phone=phone,
             username=username,
@@ -68,6 +67,7 @@ class UserEntity(BaseEntity):
 
     def delete(self) -> None:
         self._validate_not_deleted()
+        self.is_deleted = True
         self.deleted_at = datetime.now(UTC)
 
         self.register_event(
@@ -79,5 +79,5 @@ class UserEntity(BaseEntity):
         )
 
     def _validate_not_deleted(self) -> None:
-        if self.deleted_at is not None:
+        if self.is_deleted:
             raise UserAlreadyDeleted(self.oid)

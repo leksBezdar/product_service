@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Iterable
 
 from sqlalchemy import func, or_, select
@@ -53,15 +53,25 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
     async def get_all(
         self, filters: GetUsersFilters
     ) -> tuple[Iterable[UserEntity], int]:
-        # TODO exclude deleted users
         async with self.get_session() as session:
-            query = select(self._model).limit(filters.limit).offset(filters.offset)
+            # Move out query building
+            not_deleted_filter = {"is_deleted": False}
+            query = (
+                select(self._model)
+                .limit(filters.limit)
+                .offset(filters.offset)
+                .filter_by(**not_deleted_filter)
+            )
             result = await session.execute(query)
 
             users = result.scalars().all()
             users = [convert_user_model_to_entity(user) for user in users]
 
-            count = await session.execute(select(func.count()).select_from(self._model))
+            count = await session.execute(
+                select(func.count())
+                .select_from(self._model)
+                .filter_by(**not_deleted_filter)
+            )
             count = count.scalar()
 
             return users, count
@@ -73,8 +83,7 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
             user = result.scalars().first()
             if user:
                 user.is_deleted = True
-                # TODO fix time zone
-                user.deleted_at = datetime.now(UTC)
+                user.deleted_at = datetime.now().replace(tzinfo=None)
                 await session.commit()
 
                 return convert_user_model_to_entity(user)
