@@ -54,26 +54,26 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
         self, filters: GetUsersFilters
     ) -> tuple[Iterable[UserEntity], int]:
         async with self.get_session() as session:
-            # Move out query building
-            not_deleted_filter = {"is_deleted": False}
-            query = (
+            # TODO Move out query building
+            get_users_query = (
                 select(self._model)
                 .limit(filters.limit)
                 .offset(filters.offset)
-                .filter_by(**not_deleted_filter)
+                .where(self._model.is_deleted == filters.show_deleted)
             )
-            result = await session.execute(query)
-
-            users = result.scalars().all()
-            users = [convert_user_model_to_entity(user) for user in users]
-
-            count = await session.execute(
+            count_users_query = (
                 select(func.count())
                 .select_from(self._model)
-                .filter_by(**not_deleted_filter)
+                .where(self._model.is_deleted == filters.show_deleted)
             )
-            count = count.scalar()
 
+            get_users_result = await session.execute(get_users_query)
+            count_result = await session.execute(count_users_query)
+
+            count = count_result.scalar()
+            users = get_users_result.scalars().all()
+
+            users = [convert_user_model_to_entity(user) for user in users]
             return users, count
 
     @exception_mapper
